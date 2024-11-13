@@ -2,6 +2,7 @@ import unittest
 from pathlib import Path
 
 from click.testing import CliRunner
+
 from src import from_local
 
 
@@ -9,7 +10,6 @@ class TestCli(unittest.TestCase):
 
     def test_local(self):
         fixtures_dir = Path(__file__).parent.joinpath("fixtures")
-
         runner = CliRunner()
         result = runner.invoke(from_local, [
             "--pkl-github-actions-bindings",
