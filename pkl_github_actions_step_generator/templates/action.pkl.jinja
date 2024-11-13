@@ -16,6 +16,8 @@ hidden const OUTPUT_{{ output.name.upper_snake }} = "{{ output.name.real }}"
 {%- endfor %}
 {%- endif %}
 
+{%- if action.inputs %}
+{{ '' }}
 /// {{ action.name.real }}
 {%- if action.description %}
 ///
@@ -35,6 +37,7 @@ class ActionInput {
     {{ input.name.camel }}: {{ input.constraint }}{% if not input.required %}? = null{% endif %}
 {% endfor %}
 }
+{%- endif %}
 
 /// A "class as function", use this to construct a yaml{% if pkl_github_actions.enabled %} or pkl-github-actions{% endif %} output.
 /// To use, run `new Step { ... }.yaml`
@@ -43,7 +46,9 @@ class Step {
     name: String? = null
     `if`: String? = null
     env: Mapping<String, Any>? = null
-    inputs: ActionInput
+    {%- if action.inputs %}
+    inputs: ActionInput{% if all_inputs_nullable %}? = null{% endif %}
+    {%- endif %}
 
     fixed yaml = new {
         ["id"] = id
@@ -52,11 +57,11 @@ class Step {
         ["if"] = `if`
         ["env"] = env
         {%- if action.inputs %}
-        ["with"] = new {
+        ["with"] = {% if all_inputs_nullable %}if(inputs != null) {% endif %}new {
         {%- for input in action.inputs %}
             ["{{ input.name.real }}"] = inputs.{{ input.name.camel }}
         {%- endfor %}
-        }
+        }{% if all_inputs_nullable %} else null{% endif %}
         {%- endif  %}
     }
 
@@ -68,7 +73,7 @@ class Step {
 
 /// A convenience function to get a yaml step. If you need parameters besides id, name, and inputs,
 /// use the "class-as-function"
-const function Step(_id: String, _name: String, _inputs: ActionInput) =
+const function Step(_id: String?, _name: String?, _inputs: ActionInput{% if all_inputs_nullable %}?{% endif %}) =
     new Step {
         id = _id
         name = _name
@@ -91,15 +96,15 @@ const function outputs_{{ output.name.snake }}(id: String) =
 {%- if pkl_github_actions.enabled %}
 {{ '' }}
 local const function create_github_action(step: Step) = new pklaction.ActionStep {
-  id = step.id
-  name = step.name
-  `if` = step.`if`
-  env = step.env
-  uses = ACTION_CALL
-  with = new Mapping {
-    {%- for input in action.inputs %}
+    id = step.id
+    name = step.name
+    `if` = step.`if`
+    env = step.env
+    uses = ACTION_CALL
+    with = {% if all_inputs_nullable %}if (step.inputs != null) {% endif %}new Mapping {
+        {%- for input in action.inputs %}
         ["{{ input.name.real }}"] = step.inputs.{{ input.name.camel }}
-    {%- endfor %}
-  }
+        {%- endfor %}
+    }{% if all_inputs_nullable %} else null{% endif %}
 }
 {%- endif  %}

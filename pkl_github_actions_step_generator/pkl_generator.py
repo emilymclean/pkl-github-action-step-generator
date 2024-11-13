@@ -42,7 +42,8 @@ class PklGenerator:
                 "pkl_github_actions": {
                     "enabled": self.config.pkl_github_actions_integration is not None,
                     "version": self.config.pkl_github_actions_integration,
-                }
+                },
+                "all_inputs_nullable": not any(input.required for input in self.action.inputs)
             }
         )
 

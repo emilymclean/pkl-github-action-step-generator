@@ -12,8 +12,7 @@ hidden const OUTPUT_COMMIT = "commit"
 class ActionInput {
 
     /// Repository name with owner. For example, actions/checkout
-    /// Default value if null is "${{ github.repository }}"
-    repository: Any? = null
+    repository: Any
 
     /// The branch, tag or SHA to checkout. When checking out the repository that triggered a workflow, this defaults to the reference or SHA for that event.  Otherwise, uses the default branch.
     ref: Any? = null
@@ -127,7 +126,7 @@ class Step {
 
 /// A convenience function to get a yaml step. If you need parameters besides id, name, and inputs,
 /// use the "class-as-function"
-const function Step(_id: String, _name: String, _inputs: ActionInput) =
+const function Step(_id: String?, _name: String?, _inputs: ActionInput) =
     new Step {
         id = _id
         name = _name
@@ -148,12 +147,12 @@ const function outputs_commit(id: String) =
 
 
 local const function create_github_action(step: Step) = new pklaction.ActionStep {
-  id = step.id
-  name = step.name
-  `if` = step.`if`
-  env = step.env
-  uses = ACTION_CALL
-  with = new Mapping {
+    id = step.id
+    name = step.name
+    `if` = step.`if`
+    env = step.env
+    uses = ACTION_CALL
+    with = new Mapping {
         ["repository"] = step.inputs.repository
         ["ref"] = step.inputs.ref
         ["token"] = step.inputs.token
@@ -174,5 +173,5 @@ local const function create_github_action(step: Step) = new pklaction.ActionStep
         ["submodules"] = step.inputs.submodules
         ["set-safe-directory"] = step.inputs.setSafeDirectory
         ["github-server-url"] = step.inputs.githubServerUrl
-  }
+    }
 }
