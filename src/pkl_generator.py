@@ -26,7 +26,7 @@ class PklGenerator:
         self.action = action
         self.config = config
         self.env = Environment(
-            loader=PackageLoader("pkl_github_action_step_generator", "templates"),
+            loader=PackageLoader("src", "templates"),
             autoescape=select_autoescape()
         )
         self.extra = {}

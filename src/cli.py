@@ -5,7 +5,7 @@ from typing import Optional
 import click
 import requests
 
-from pkl_github_action_step_generator.core import PklGithubActionStepGenerator
+from .core import PklGithubActionStepGenerator
 
 _valid_reference = re.compile(
     r'^([\w\d](?:[\w\d]|\-(?=[\w\d])){0,38})/([\w\d.\-_]{1,100})(/[\w\d.\-_]+)*@([\w\d.\-_]+)$')
