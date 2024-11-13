@@ -8,6 +8,7 @@ from src import from_local
 class TestCli(unittest.TestCase):
 
     def test_local(self):
+        print(Path("fixtures/action.yml").resolve())
         runner = CliRunner()
         result = runner.invoke(from_local, ["--pkl-github-actions-bindings", "fixtures/action.yml", "actions/checkout@v4"])
 
