@@ -2,9 +2,7 @@
 {%- for line in content.strip().split('\n')  -%}
 /// {{ line }}
 {%- endfor %}
-{%- endmacro %}
-
-
+{%- endmacro -%}
 open module {{ module }}
 {% if pkl_github_actions.enabled %}
 import "package://github.com/emilymclean/pkl-github-actions/releases/download/v{{ pkl_github_actions.version }}/pkl-github-actions@{{ pkl_github_actions.version }}#/actions.pkl" as pklaction
@@ -23,7 +21,7 @@ hidden const OUTPUT_{{ output.name.upper_snake }} = "{{ output.name.real }}"
 ///
 {{ description(action.description) }}
 {%- endif %}
-class {{ action.name.capital }}ActionInput {
+class ActionInput {
 {% for input in action.inputs %}
     {%- if input.description %}
     {{ description(input.description) }}
@@ -38,12 +36,14 @@ class {{ action.name.capital }}ActionInput {
 {% endfor %}
 }
 
-class {{ action.name.capital }}Step {
+/// A "class as function", use this to construct a yaml{% if pkl_github_actions.enabled %} or pkl-github-actions{% endif %} output.
+/// To use, run `new Step { ... }.yaml`
+class Step {
     id: String? = null
     name: String? = null
     `if`: String? = null
     env: Mapping<String, Any>? = null
-    inputs: {{ action.name.capital }}ActionInput
+    inputs: ActionInput
 
     fixed yaml = new {
         ["id"] = id
@@ -66,8 +66,9 @@ class {{ action.name.capital }}Step {
 
 }
 
-const function {{ action.name.capital }}Step(_id: String, _name: String, _inputs: {{ action.name.capital }}ActionInput) =
-    new {{ action.name.capital }}Step {
+/// A convenience function to get a yaml step. If you need parameters besides id, name, and inputs, use the "class-as-function"
+const function Step(_id: String, _name: String, _inputs: ActionInput) =
+    new Step {
         id = _id
         name = _name
         inputs = _inputs
@@ -81,14 +82,14 @@ const function {{ action.name.capital }}Step(_id: String, _name: String, _inputs
 ///
 {{ description(output.description) }}
 {%- endif %}
-const function {{ action.name.snake }}_outputs_{{ output.name.snake }}(id: String) =
+const function outputs_{{ output.name.snake }}(id: String) =
     "steps.\(id).outputs.\(OUTPUT_{{ output.name.upper_snake }})"
 {% endfor %}
 {%- endif  %}
 
 {%- if pkl_github_actions.enabled %}
 {{ '' }}
-local const function create_github_action(step: {{ action.name.capital }}Step) = new pklaction.ActionStep {
+local const function create_github_action(step: Step) = new pklaction.ActionStep {
   id = step.id
   name = step.name
   `if` = step.`if`
