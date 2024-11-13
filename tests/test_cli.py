@@ -3,7 +3,7 @@ from pathlib import Path
 
 from click.testing import CliRunner
 
-from src import from_local
+from pkl_github_actions_step_generator import from_local
 
 
 class TestCli(unittest.TestCase):
