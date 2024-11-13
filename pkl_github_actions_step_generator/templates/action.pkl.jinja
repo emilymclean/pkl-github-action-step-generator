@@ -74,11 +74,26 @@ class Step {
 /// A convenience function to get a yaml step. If you need parameters besides id, name, and inputs,
 /// use the "class-as-function"
 const function Step(_id: String?, _name: String?, _inputs: ActionInput{% if all_inputs_nullable %}?{% endif %}) =
+    Yaml(_id, _name, _inputs)
+
+/// A convenience function to get a yaml step. If you need parameters besides id, name, and inputs,
+/// use the "class-as-function"
+const function Yaml(_id: String?, _name: String?, _inputs: ActionInput{% if all_inputs_nullable %}?{% endif %}) =
     new Step {
         id = _id
         name = _name
         inputs = _inputs
     }.yaml
+{% if pkl_github_actions.enabled %}
+/// A convenience function to get a github_actions step. If you need parameters besides id, name, and inputs,
+/// use the "class-as-function"
+const function GithubAction(_id: String?, _name: String?, _inputs: ActionInput{% if all_inputs_nullable %}?{% endif %}) =
+    new Step {
+        id = _id
+        name = _name
+        inputs = _inputs
+    }.github_actions
+{% endif %}
 
 {%- if action.outputs %}
 {{ '' }}
