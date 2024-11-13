@@ -1,8 +1,9 @@
 from dataclasses import asdict, dataclass
+from pathlib import Path
 from typing import Dict, Any, Optional
 
 from .action_parser import Action, ActionInputParameter, ActionOutputParameter
-from jinja2 import Environment, PackageLoader, select_autoescape
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 
 @dataclass
@@ -26,7 +27,7 @@ class PklGenerator:
         self.action = action
         self.config = config
         self.env = Environment(
-            loader=PackageLoader("pkl_github_actions_step_generator", "templates"),
+            loader=FileSystemLoader(Path(__file__).parent.joinpath("templates")),
             autoescape=select_autoescape()
         )
         self.extra = {}
