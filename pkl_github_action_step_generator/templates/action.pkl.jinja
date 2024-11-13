@@ -66,7 +66,8 @@ class Step {
 
 }
 
-/// A convenience function to get a yaml step. If you need parameters besides id, name, and inputs, use the "class-as-function"
+/// A convenience function to get a yaml step. If you need parameters besides id, name, and inputs,
+/// use the "class-as-function"
 const function Step(_id: String, _name: String, _inputs: ActionInput) =
     new Step {
         id = _id
@@ -77,7 +78,7 @@ const function Step(_id: String, _name: String, _inputs: ActionInput) =
 {%- if action.outputs %}
 {{ '' }}
 {%- for output in action.outputs %}
-/// Generates the syntax to access the "{{ output.name.real }}" given the step ID
+/// Generates the syntax to access the "{{ output.name.real }}" output given the step ID
 {%- if output.description %}
 ///
 {{ description(output.description) }}
