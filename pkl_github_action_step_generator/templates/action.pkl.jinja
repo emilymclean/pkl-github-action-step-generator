@@ -1,0 +1,87 @@
+open module {{ module }}
+{% if pkl_github_actions.enabled %}
+import "package://github.com/emilymclean/pkl-github-actions/releases/download/v{{ pkl_github_actions.version }}/pkl-github-actions@{{ pkl_github_actions.version }}#/actions.pkl" as pklaction
+{%- endif %}
+
+hidden const ACTION_CALL = "{{ action.call }}"
+
+{%- if action.outputs %}
+{%- for output in action.outputs %}
+hidden const OUTPUT_{{ output.name.upper_snake }} = "{{ output.name.real }}"
+{%- endfor %}
+{%- endif %}
+
+/// {{ action.name.real }}
+{%- if action.description %}
+///
+/// {{ action.description }}
+{%- endif %}
+class {{ action.name.capital }}ActionInput {
+{%- for input in action.inputs %}
+
+    /// {{ input.name.real }}
+    {%- if input.description or input.default %}
+    ///
+    {%- endif %}
+    {%- if input.description %}
+    /// {{ input.description }}
+    {%- endif %}
+    {%- if input.default %}
+    /// Default value if null is "{{ input.default }}"
+    {%- endif %}
+    {%- if input.deprecationMessage %}
+    @Deprecated { message = "{{ input.deprecationMessage }}" }
+    {%- endif %}
+    {{ input.name.camel }}: {{ input.constraint }}{% if not input.required %}? = null{% endif %}
+{%- endfor %}
+
+}
+
+class {{ action.name.capital }}Step {
+    id: String? = null
+    name: String? = null
+    `if`: String? = null
+    env: Mapping<String, Any>? = null
+    inputs: {{ action.name.capital }}ActionInput
+
+    fixed yaml = new {
+        ["id"] = id
+        ["name"] = name
+        ["uses"] = ACTION_CALL
+        ["if"] = `if`
+        ["env"] = env
+        {%- if action.inputs %}
+        ["with"] = new {
+        {%- for input in action.inputs %}
+            ["{{ input.name.real }}"] = inputs.{{ input.name.camel }}
+        {%- endfor %}
+        }
+        {%- endif  %}
+    }
+
+    {%- if pkl_github_actions.enabled %}
+    fixed github_actions = create_github_action(this)
+    {%- endif  %}
+}
+{%- if action.outputs %}
+{{ '' }}
+{%- for output in action.outputs %}
+const function {{ action.name.snake }}_outputs_{{ output.name.snake }}(id: String) =
+    "${{ "{{" }} steps.\(id).outputs.\(OUTPUT_{{ output.name.upper_snake }}) {{ "}}" }}"
+{% endfor %}
+{%- endif  %}
+
+{%- if pkl_github_actions.enabled %}
+local const function create_github_action(step: {{ action.name.capital }}Step) = new pklaction.ActionStep {
+  id = step.id
+  name = step.name
+  `if` = step.`if`
+  env = step.env
+  uses = ACTION_CALL
+  with = new Mapping {
+    {%- for input in action.inputs %}
+        ["{{ input.name.real }}"] = step.inputs.{{ input.name.camel }}
+    {%- endfor %}
+  }
+}
+{%- endif  %}
