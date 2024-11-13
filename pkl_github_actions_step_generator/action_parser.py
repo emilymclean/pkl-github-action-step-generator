@@ -19,7 +19,7 @@ class ActionInputParameter:
     required: bool
     default: Optional[str]
     deprecation_message: Optional[str]
-    constraint: str = "String"
+    constraint: str = "Any"
 
 
 @dataclass
