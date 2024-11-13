@@ -1,0 +1,71 @@
+open module emilymclean.pkl_swift_action
+
+import "package://github.com/emilymclean/pkl-github-actions/releases/download/v0.1.0-alpha.96/pkl-github-actions@0.1.0-alpha.96#/actions.pkl" as pklaction
+
+hidden const ACTION_CALL = ""
+hidden const OUTPUT_TEST_OUTPUT = "test-output"
+hidden const OUTPUT_TEST_OUTPUT2 = "test-output2"
+
+/// Pkl Swift
+///
+/// Generates swift source code for a Pkl model.
+class PklSwiftActionInput {
+
+    /// input-file
+    ///
+    /// The Pkl files to process, separated by commas.
+    inputFile: String
+
+    /// output-folder
+    ///
+    /// Where the resulting data will be written to.
+    outputFolder: String
+
+    /// pkl-version
+    ///
+    /// The pkl version to install.
+    /// Default value if null is "0.27.0"
+    pklVersion: String? = null
+
+}
+
+class PklSwiftStep {
+    id: String? = null
+    name: String? = null
+    `if`: String? = null
+    env: Mapping<String, Any>? = null
+    inputs: PklSwiftActionInput
+
+    fixed yaml = new {
+        ["id"] = id
+        ["name"] = name
+        ["uses"] = ACTION_CALL
+        ["if"] = `if`
+        ["env"] = env
+        ["with"] = new {
+            ["input-file"] = inputs.inputFile
+            ["output-folder"] = inputs.outputFolder
+            ["pkl-version"] = inputs.pklVersion
+        }
+    }
+    fixed github_actions = create_github_action(this)
+}
+
+const function pkl_swift_outputs_test_output(id: String) =
+    "${{ steps.\(id).outputs.\(OUTPUT_TEST_OUTPUT) }}"
+
+const function pkl_swift_outputs_test_output2(id: String) =
+    "${{ steps.\(id).outputs.\(OUTPUT_TEST_OUTPUT2) }}"
+
+local const function create_github_action(step: PklSwiftStep) = new pklaction.ActionStep {
+  id = step.id
+  name = step.name
+  `if` = step.`if`
+  env = step.env
+  uses = ACTION_CALL
+  with = new Mapping {
+        ["input-file"] = step.inputs.inputFile
+        ["output-folder"] = step.inputs.outputFolder
+        ["pkl-version"] = step.inputs.pklVersion
+  }
+}

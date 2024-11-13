@@ -1,0 +1,10 @@
+import "action.pkl"
+
+hidden actionInput = new action.PklSwiftActionInput {
+  inputFile = "test"
+  outputFolder = "test"
+}
+
+value = new action.PklSwiftStep {
+  inputs = actionInput
+}.yaml

@@ -1,37 +1,47 @@
-from dataclasses import asdict
-from typing import Dict, Any
+from dataclasses import asdict, dataclass
+from typing import Dict, Any, Optional
 
 from .action_parser import Action, ActionInputParameter, ActionOutputParameter
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 
-class Generator:
+@dataclass
+class PklGeneratorConfig:
+    action_name: str
+    action_version: str
+    module_name: str
+    pkl_github_actions_integration: Optional[str] = None
+
+
+class PklGenerator:
     action: Action
-    extra: Dict[str, Any]
+    config: PklGeneratorConfig
     env: Environment
 
-    def __init__(self, action: Action):
+    def __init__(
+            self,
+            action: Action,
+            config: PklGeneratorConfig
+    ):
         self.action = action
+        self.config = config
         self.env = Environment(
             loader=PackageLoader("pkl_github_action_step_generator", "templates"),
             autoescape=select_autoescape()
         )
         self.extra = {}
-        self._prepare_data()
 
-    def _prepare_data(self):
-        self.extra["module"] = "test"
-        self.extra["pkl_github_actions"] = {
-            "enabled": True,
-            "version": "0.1.0-alpha.96"
-        }
-
-        self.action.call = "test/action@v1"
-
-    def generate(self) -> str:
-        print(self.action)
-        template = self.env.get_template("main.pkl.jinja")
-        return template.render({
-            "action": asdict(self.action),
-        } | self.extra)
+    def generate_main(self) -> str:
+        template = self.env.get_template("action.pkl.jinja")
+        return template.render(
+            {
+                "action": asdict(self.action),
+                "call": f"{self.config.action_name}@{self.config.action_version}",
+                "module": self.config.module_name,
+                "pkl_github_actions": {
+                    "enabled": self.config.pkl_github_actions_integration is not None,
+                    "version": self.config.pkl_github_actions_integration,
+                }
+            }
+        )
 
