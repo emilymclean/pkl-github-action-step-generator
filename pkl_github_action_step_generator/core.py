@@ -18,25 +18,23 @@ class PklGithubActionStepGenerator:
 
     def generate(
             self,
-            action_file_path: Path,
-            hosted_url: str,
+            action_content: str,
+            name: str,
             tag: str,
-            module_name: Optional[str] = None
+            module_name: Optional[str] = None,
+            pkl_github_actions_bindings_version: Optional[str] = None,
     ) -> str:
-        if hosted_url.startswith("https://github.com/"):
-            hosted_url = hosted_url[len("https://github.com/"):]
-
         if module_name is None:
-            module_name = hosted_url.replace("/", ".").rstrip(".").replace("-", "_")
+            module_name = name.replace("/", ".").rstrip(".").replace("-", "_")
 
-        with action_file_path.open() as file:
-            action_content = yaml.safe_load(file)
+        action_content = yaml.safe_load(action_content)
         action = self.transformer.transform(self.parser.parse(action_content))
+
         config = PklGeneratorConfig(
-            hosted_url,
+            name,
             tag,
             module_name,
-            "0.1.0-alpha.96"
+            pkl_github_actions_bindings_version
         )
 
         generator = PklGenerator(

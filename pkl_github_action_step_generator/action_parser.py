@@ -31,18 +31,17 @@ class ActionOutputParameter:
 @dataclass
 class Action:
     name: ParameterName
-    author: str
+    author: Optional[str]
     description: str
     inputs: List[ActionInputParameter]
     outputs: List[ActionOutputParameter]
-    call: str = ""
 
 
 class ActionParser:
 
     def parse(self, data) -> Action:
         name = self._create_name(data["name"])
-        author = data["author"]
+        author = data["author"] if "author" in data else None
         description = data["description"]
         inputs = self.parse_inputs(data["inputs"]) if "inputs" in data else []
         outputs = self.parse_outputs(data["outputs"]) if "outputs" in data else []

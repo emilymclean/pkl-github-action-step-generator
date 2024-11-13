@@ -1,9 +1,16 @@
+{%- macro description(content) -%}
+{%- for line in content.strip().split('\n')  -%}
+/// {{ line }}
+{%- endfor %}
+{%- endmacro %}
+
+
 open module {{ module }}
 {% if pkl_github_actions.enabled %}
 import "package://github.com/emilymclean/pkl-github-actions/releases/download/v{{ pkl_github_actions.version }}/pkl-github-actions@{{ pkl_github_actions.version }}#/actions.pkl" as pklaction
 {%- endif %}
 
-hidden const ACTION_CALL = "{{ action.call }}"
+hidden const ACTION_CALL = "{{ call }}"
 
 {%- if action.outputs %}
 {%- for output in action.outputs %}
@@ -14,17 +21,12 @@ hidden const OUTPUT_{{ output.name.upper_snake }} = "{{ output.name.real }}"
 /// {{ action.name.real }}
 {%- if action.description %}
 ///
-/// {{ action.description }}
+{{ description(action.description) }}
 {%- endif %}
 class {{ action.name.capital }}ActionInput {
-{%- for input in action.inputs %}
-
-    /// {{ input.name.real }}
-    {%- if input.description or input.default %}
-    ///
-    {%- endif %}
+{% for input in action.inputs %}
     {%- if input.description %}
-    /// {{ input.description }}
+    {{ description(input.description) }}
     {%- endif %}
     {%- if input.default %}
     /// Default value if null is "{{ input.default }}"
@@ -33,8 +35,7 @@ class {{ action.name.capital }}ActionInput {
     @Deprecated { message = "{{ input.deprecationMessage }}" }
     {%- endif %}
     {{ input.name.camel }}: {{ input.constraint }}{% if not input.required %}? = null{% endif %}
-{%- endfor %}
-
+{% endfor %}
 }
 
 class {{ action.name.capital }}Step {
@@ -62,16 +63,31 @@ class {{ action.name.capital }}Step {
     {%- if pkl_github_actions.enabled %}
     fixed github_actions = create_github_action(this)
     {%- endif  %}
+
 }
+
+const function {{ action.name.capital }}Step(_id: String, _name: String, _inputs: {{ action.name.capital }}ActionInput) =
+    new {{ action.name.capital }}Step {
+        id = _id
+        name = _name
+        inputs = _inputs
+    }.yaml
+
 {%- if action.outputs %}
 {{ '' }}
 {%- for output in action.outputs %}
+/// Generates the syntax to access the "{{ output.name.real }}" given the step ID
+{%- if output.description %}
+///
+{{ description(output.description) }}
+{%- endif %}
 const function {{ action.name.snake }}_outputs_{{ output.name.snake }}(id: String) =
-    "${{ "{{" }} steps.\(id).outputs.\(OUTPUT_{{ output.name.upper_snake }}) {{ "}}" }}"
+    "steps.\(id).outputs.\(OUTPUT_{{ output.name.upper_snake }})"
 {% endfor %}
 {%- endif  %}
 
 {%- if pkl_github_actions.enabled %}
+{{ '' }}
 local const function create_github_action(step: {{ action.name.capital }}Step) = new pklaction.ActionStep {
   id = step.id
   name = step.name
