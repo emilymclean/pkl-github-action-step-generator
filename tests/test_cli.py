@@ -8,12 +8,19 @@ from src import from_local
 class TestCli(unittest.TestCase):
 
     def test_local(self):
-        runner = CliRunner()
-        result = runner.invoke(from_local, ["--pkl-github-actions-bindings", "tests/fixtures/action.yml", "actions/checkout@v4"])
+        fixtures_dir = Path(__file__).parent.joinpath("fixtures")
 
-        with Path("tests/fixtures/action.pkl").open() as f:
+        runner = CliRunner()
+        result = runner.invoke(from_local, [
+            "--pkl-github-actions-bindings",
+            str(fixtures_dir.joinpath("action.yml").resolve()),
+            "actions/checkout@v4"
+        ])
+
+        with fixtures_dir.joinpath("action.pkl").open() as f:
             expected_output = f.read()
 
+        self.assertEqual(None, result.exception)
         self.assertEqual(0, result.exit_code)
         self.assertEqual(expected_output, result.output)
 
