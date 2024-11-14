@@ -87,6 +87,7 @@ def generate(
 @click.option('--pkl-github-actions-bindings', default=False, is_flag=True)
 @click.option('--pkl-github-actions-bindings-version', required=False)
 @click.option('--deprecated', required=False, is_flag=True)
+@click.option('--yaml-constraints-file', required=False)
 @click.option('--generate-pklproject', required=False, is_flag=True)
 @click.option('--package-name', required=False)
 @click.option('--package-version', required=False)

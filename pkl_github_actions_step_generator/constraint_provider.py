@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Optional
 
-from .action_parser import ParameterType
+from .action_parser import ParameterType, Action
 from .pkl_generator import PklImport
 
 
@@ -14,6 +14,16 @@ class ConstraintProvider(ABC):
 
     def included_file(self, action_path: str) -> Optional[PklImport]:
         return None
+
+    def apply_constraints(self, action_path: str, action: Action):
+        for parameter in action.inputs:
+            constraint = self.constraint(action_path, parameter.name.real, ParameterType.INPUT)
+            if constraint is None:
+                continue
+            constraint = constraint + " | String"
+            if not parameter.required:
+                constraint = constraint + "?"
+            parameter.constraint = constraint
 
 
 class YamlConstraintProvider(ConstraintProvider):

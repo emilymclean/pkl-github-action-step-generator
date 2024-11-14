@@ -36,11 +36,7 @@ class PklGithubActionStepGenerator:
         action = self.transformer.transform(self.parser.parse(action_content))
 
         if constraint_provider is not None:
-            for parameter in action.inputs:
-                constraint = constraint_provider.constraint(f"{name}@{tag}", parameter.name.real, ParameterType.INPUT)
-                if constraint is None:
-                    continue
-                parameter.constraint = constraint
+            constraint_provider.apply_constraints(f"{name}@{tag}", action)
 
         config = PklGeneratorConfig(
             name,

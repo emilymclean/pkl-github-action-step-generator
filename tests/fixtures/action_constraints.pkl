@@ -58,7 +58,7 @@ class ActionInput {
 
     /// Number of commits to fetch. 0 indicates all history for all branches and tags.
     /// Default value if null is "1"
-    fetchDepth: Int? = null
+    fetchDepth: Int? | String? = null
 
     /// Whether to fetch tags, even if fetch-depth > 0.
     /// Default value if null is "False"

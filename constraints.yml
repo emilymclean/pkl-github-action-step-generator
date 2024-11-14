@@ -1,3 +1,0 @@
-actions/checkout@v4:
-  inputs:
-    fetch-depth: "Int?"
