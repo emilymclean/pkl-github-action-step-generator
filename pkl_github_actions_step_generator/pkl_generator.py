@@ -1,9 +1,15 @@
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List, Tuple
 
 from .action_parser import Action, ActionInputParameter, ActionOutputParameter
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+
+@dataclass
+class PklImport:
+    path: str
+    import_as: str
 
 
 @dataclass
@@ -11,7 +17,8 @@ class PklGeneratorConfig:
     action_name: str
     action_version: str
     module_name: str
-    pkl_github_actions_integration: Optional[str] = None
+    imports: List[PklImport]
+    pkl_github_actions_enabled: bool = False
     deprecated: bool = False
 
 
@@ -44,12 +51,10 @@ class PklGenerator:
                 },
                 "call": f"{self.config.action_name}@{self.config.action_version}",
                 "module": self.config.module_name,
-                "pkl_github_actions": {
-                    "enabled": self.config.pkl_github_actions_integration is not None,
-                    "version": self.config.pkl_github_actions_integration,
-                },
                 "all_inputs_nullable": not any(input.required for input in self.action.inputs),
                 "deprecated": self.config.deprecated,
+                "imports": self.config.imports,
+                "pkl_github_actions_enabled": self.config.pkl_github_actions_enabled,
             }
         )
 

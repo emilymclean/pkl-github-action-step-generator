@@ -4,7 +4,9 @@ from typing import Optional
 
 import click
 import requests
+import yaml
 
+from .constraint_provider import YamlConstraintProvider
 from .core import PklGithubActionStepGenerator
 
 _valid_reference = re.compile(
@@ -36,16 +38,23 @@ def generate(
         output: Optional[str],
         pkl_github_actions_bindings: bool,
         pkl_github_actions_bindings_version: Optional[str],
-        deprecated: bool
+        deprecated: bool,
+        yaml_constraints_file: Optional[str],
 ):
     core = PklGithubActionStepGenerator()
+
+    yaml_constraints = None
+    if yaml_constraints_file is not None:
+        with Path(yaml_constraints_file).open(mode='r') as f:
+            yaml_constraints = YamlConstraintProvider(yaml.safe_load(f))
 
     generated = core.generate(
         content,
         name,
         tag,
         pkl_github_actions_bindings_version=pkl_github_actions_bindings_version if pkl_github_actions_bindings else None,
-        deprecated=deprecated
+        deprecated=deprecated,
+        constraint_provider=yaml_constraints
     )
 
     if output is None:
@@ -66,7 +75,8 @@ def from_remote(
         output: Optional[str],
         pkl_github_actions_bindings: bool,
         pkl_github_actions_bindings_version: Optional[str],
-        deprecated: bool
+        deprecated: bool,
+        yaml_constraints_file: Optional[str],
 ):
     if pkl_github_actions_bindings_version is None:
         pkl_github_actions_bindings_version = "0.1.0-alpha.96"
@@ -87,7 +97,16 @@ def from_remote(
     if content is None:
         raise Exception("Unable to find action file for provided action")
 
-    generate(content, name, tag, output, pkl_github_actions_bindings, pkl_github_actions_bindings_version, deprecated)
+    generate(
+        content,
+        name,
+        tag,
+        output,
+        pkl_github_actions_bindings,
+        pkl_github_actions_bindings_version,
+        deprecated,
+        yaml_constraints_file
+    )
 
 
 @click.command()
@@ -97,13 +116,15 @@ def from_remote(
 @click.option('--pkl-github-actions-bindings', default=False, is_flag=True)
 @click.option('--pkl-github-actions-bindings-version', required=False)
 @click.option('--deprecated', required=False, is_flag=True)
+@click.option('--yaml-constraints-file', required=False)
 def from_local(
         file_path: str,
         name: str,
         output: Optional[str],
         pkl_github_actions_bindings: bool,
         pkl_github_actions_bindings_version: Optional[str],
-        deprecated: bool
+        deprecated: bool,
+        yaml_constraints_file: Optional[str],
 ):
     if pkl_github_actions_bindings_version is None:
         pkl_github_actions_bindings_version = "0.1.0-alpha.96"
@@ -113,7 +134,16 @@ def from_local(
     with Path(file_path).open(mode='r') as f:
         content = f.read()
 
-    generate(content, name, tag, output, pkl_github_actions_bindings, pkl_github_actions_bindings_version, deprecated)
+    generate(
+        content,
+        name,
+        tag,
+        output,
+        pkl_github_actions_bindings,
+        pkl_github_actions_bindings_version,
+        deprecated,
+        yaml_constraints_file
+    )
 
 
 entry_point.add_command(from_remote)

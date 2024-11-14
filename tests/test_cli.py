@@ -57,6 +57,23 @@ class TestCli(unittest.TestCase):
         self.assertEqual(0, result.exit_code)
         self.assertEqual(expected_output, result.output)
 
+    def test_constraints(self):
+        fixtures_dir = Path(__file__).parent.joinpath("fixtures")
+        runner = CliRunner()
+        result = runner.invoke(from_local, [
+            "--pkl-github-actions-bindings",
+            "--yaml-constraints-file", str(fixtures_dir.joinpath("constraints.yml").resolve()),
+            str(fixtures_dir.joinpath("action_non_nullable.yml").resolve()),
+            "actions/checkout@v4"
+        ])
+
+        with fixtures_dir.joinpath("action_constraints.pkl").open() as f:
+            expected_output = f.read()
+
+        self.assertEqual(None, result.exception)
+        self.assertEqual(0, result.exit_code)
+        self.assertEqual(expected_output, result.output)
+
 
 if __name__ == '__main__':
     unittest.main()
