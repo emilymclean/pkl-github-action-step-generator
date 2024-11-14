@@ -4,7 +4,9 @@ from typing import Optional
 
 import click
 import requests
+import yaml
 
+from .constraint_provider import YamlConstraintProvider
 from .core import PklGithubActionStepGenerator
 
 _valid_reference = re.compile(
@@ -36,16 +38,28 @@ def generate(
         output: Optional[str],
         pkl_github_actions_bindings: bool,
         pkl_github_actions_bindings_version: Optional[str],
-        deprecated: bool
+        deprecated: bool,
+        yaml_constraints_file: Optional[str],
+        generate_pklproject: bool,
+        package_name: Optional[str],
+        package_version: Optional[str],
+        package_baseuri: Optional[str],
+        package_output: Optional[str],
 ):
     core = PklGithubActionStepGenerator()
+
+    yaml_constraints = None
+    if yaml_constraints_file is not None:
+        with Path(yaml_constraints_file).open(mode='r') as f:
+            yaml_constraints = YamlConstraintProvider(yaml.safe_load(f))
 
     generated = core.generate(
         content,
         name,
         tag,
         pkl_github_actions_bindings_version=pkl_github_actions_bindings_version if pkl_github_actions_bindings else None,
-        deprecated=deprecated
+        deprecated=deprecated,
+        constraint_provider=yaml_constraints
     )
 
     if output is None:
@@ -54,6 +68,18 @@ def generate(
         with Path(output).open(mode='w') as f:
             f.write(generated)
 
+    if generate_pklproject:
+        pklproj = core.generate_project(
+            content,
+            name,
+            tag,
+            package_baseuri,
+            package_version=package_version,
+            package_name=package_name,
+        )
+        with Path(package_output).open(mode='w') as f:
+            f.write(pklproj)
+
 
 @click.command()
 @click.argument('name')
@@ -61,15 +87,30 @@ def generate(
 @click.option('--pkl-github-actions-bindings', default=False, is_flag=True)
 @click.option('--pkl-github-actions-bindings-version', required=False)
 @click.option('--deprecated', required=False, is_flag=True)
+@click.option('--generate-pklproject', required=False, is_flag=True)
+@click.option('--package-name', required=False)
+@click.option('--package-version', required=False)
+@click.option('--package-baseuri', required=False)
+@click.option('--package-output', required=False)
 def from_remote(
         name: str,
         output: Optional[str],
         pkl_github_actions_bindings: bool,
         pkl_github_actions_bindings_version: Optional[str],
-        deprecated: bool
+        deprecated: bool,
+        yaml_constraints_file: Optional[str],
+        generate_pklproject: bool,
+        package_name: Optional[str],
+        package_version: Optional[str],
+        package_baseuri: Optional[str],
+        package_output: Optional[str],
 ):
     if pkl_github_actions_bindings_version is None:
         pkl_github_actions_bindings_version = "0.1.0-alpha.96"
+    if generate_pklproject and package_baseuri is None:
+        raise click.BadParameter("--package-baseuri must be set if --generate-pklproject is set")
+    if generate_pklproject and package_output is None:
+        raise click.BadParameter("--package-output must be set if --generate-pklproject is set")
 
     name, repository, path, tag = parse_name(name)
 
@@ -87,7 +128,21 @@ def from_remote(
     if content is None:
         raise Exception("Unable to find action file for provided action")
 
-    generate(content, name, tag, output, pkl_github_actions_bindings, pkl_github_actions_bindings_version, deprecated)
+    generate(
+        content,
+        name,
+        tag,
+        output,
+        pkl_github_actions_bindings,
+        pkl_github_actions_bindings_version,
+        deprecated,
+        yaml_constraints_file,
+        generate_pklproject,
+        package_name,
+        package_version,
+        package_baseuri,
+        package_output
+    )
 
 
 @click.command()
@@ -97,23 +152,53 @@ def from_remote(
 @click.option('--pkl-github-actions-bindings', default=False, is_flag=True)
 @click.option('--pkl-github-actions-bindings-version', required=False)
 @click.option('--deprecated', required=False, is_flag=True)
+@click.option('--yaml-constraints-file', required=False)
+@click.option('--generate-pklproject', required=False, is_flag=True)
+@click.option('--package-name', required=False)
+@click.option('--package-version', required=False)
+@click.option('--package-baseuri', required=False)
+@click.option('--package-output', required=False)
 def from_local(
         file_path: str,
         name: str,
         output: Optional[str],
         pkl_github_actions_bindings: bool,
         pkl_github_actions_bindings_version: Optional[str],
-        deprecated: bool
+        deprecated: bool,
+        yaml_constraints_file: Optional[str],
+        generate_pklproject: bool,
+        package_name: Optional[str],
+        package_version: Optional[str],
+        package_baseuri: Optional[str],
+        package_output: Optional[str],
 ):
     if pkl_github_actions_bindings_version is None:
         pkl_github_actions_bindings_version = "0.1.0-alpha.96"
+    if generate_pklproject and package_baseuri is None:
+        raise click.BadParameter("--package-baseuri must be set if --generate-pklproject is set")
+    if generate_pklproject and package_output is None:
+        raise click.BadParameter("--package-output must be set if --generate-pklproject is set")
 
     name, repository, path, tag = parse_name(name)
 
     with Path(file_path).open(mode='r') as f:
         content = f.read()
 
-    generate(content, name, tag, output, pkl_github_actions_bindings, pkl_github_actions_bindings_version, deprecated)
+    generate(
+        content,
+        name,
+        tag,
+        output,
+        pkl_github_actions_bindings,
+        pkl_github_actions_bindings_version,
+        deprecated,
+        yaml_constraints_file,
+        generate_pklproject,
+        package_name,
+        package_version,
+        package_baseuri,
+        package_output
+    )
 
 
 entry_point.add_command(from_remote)

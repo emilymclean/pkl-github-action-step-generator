@@ -1,0 +1,8 @@
+amends "pkl:Project"
+
+package {
+  name = "actions/checkout@v4"
+  baseUri = "package://example.com/packages"
+  version = "4"
+  packageZipUrl = "https://example.com/packages/\(name)@\(version).zip"
+}

@@ -1,5 +1,6 @@
 import re
 from dataclasses import dataclass
+from enum import Enum
 from typing import List, Optional
 
 
@@ -10,6 +11,7 @@ class ParameterName:
     upper_snake: str
     camel: str
     capital: str
+    kebab: str
 
 
 @dataclass
@@ -37,6 +39,11 @@ class Action:
     outputs: List[ActionOutputParameter]
 
 
+class ParameterType(Enum):
+    INPUT = 'input'
+    OUTPUT = 'output'
+
+
 class ActionParser:
 
     def parse(self, data) -> Action:
@@ -50,13 +57,15 @@ class ActionParser:
     def parse_inputs(self, inputs) -> List[ActionInputParameter]:
         o = []
         for k, v in inputs.items():
+            required = v["required"] if "required" in v else False
             o.append(
                 ActionInputParameter(
                     self._create_name(k),
                     v["description"] if "description" in v else None,
-                    v["required"] if "required" in v else False,
+                    required,
                     v["default"] if "default" in v else None,
                     v["deprecationMessage"] if "deprecationMessage" in v else None,
+                    "Any" if required else "Any?"
                 )
             )
         return o
@@ -74,5 +83,5 @@ class ActionParser:
 
     def _create_name(self, name: str) -> ParameterName:
         return ParameterName(
-            name, "", "", "", ""
+            name, "", "", "", "", ""
         )
