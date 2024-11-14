@@ -11,6 +11,7 @@ class ParameterName:
     upper_snake: str
     camel: str
     capital: str
+    kebab: str
 
 
 @dataclass
@@ -82,5 +83,5 @@ class ActionParser:
 
     def _create_name(self, name: str) -> ParameterName:
         return ParameterName(
-            name, "", "", "", ""
+            name, "", "", "", "", ""
         )

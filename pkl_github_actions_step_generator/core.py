@@ -66,3 +66,33 @@ class PklGithubActionStepGenerator:
         )
 
         return generator.generate_main()
+
+    def generate_project(
+            self,
+            action_content: str,
+            name: str,
+            tag: str,
+            base_uri: str,
+            package_name: Optional[str] = None,
+            package_version: Optional[str] = None,
+    ) -> str:
+        action_content = yaml.safe_load(action_content)
+        action = self.transformer.transform(self.parser.parse(action_content))
+
+        config = PklGeneratorConfig(
+            name,
+            tag,
+            "",
+            [],
+        )
+
+        generator = PklGenerator(
+            action,
+            config
+        )
+
+        return generator.generate_project(
+            base_uri,
+            package_name=package_name,
+            package_version=package_version,
+        )

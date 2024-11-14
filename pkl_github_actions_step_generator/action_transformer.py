@@ -45,6 +45,7 @@ class DefaultActionTransformer(ActionTransformer):
             self._to_snake_case(name).upper(),
             self._to_camel_case(name),
             capital[0].capitalize() + capital[1:],
+            self._to_kebab_case(name)
         )
 
     def _can_clean(self, name: str) -> bool:
@@ -59,3 +60,8 @@ class DefaultActionTransformer(ActionTransformer):
     def _to_snake_case(input_str: str) -> str:
         input_str = input_str.replace('-', '_')
         return re.sub(r'(?<!^)(?=[A-Z])', '_', input_str).lower().replace('__', '_')
+
+    @staticmethod
+    def _to_kebab_case(input_str: str) -> str:
+        input_str = input_str.replace('_', '-')
+        return re.sub(r'(?<!^)(?=[A-Z])', '-', input_str).lower().replace('--', '-')
