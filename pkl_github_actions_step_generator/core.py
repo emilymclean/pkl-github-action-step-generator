@@ -23,6 +23,7 @@ class PklGithubActionStepGenerator:
             tag: str,
             module_name: Optional[str] = None,
             pkl_github_actions_bindings_version: Optional[str] = None,
+            deprecated: bool = False
     ) -> str:
         if module_name is None:
             module_name = name.replace("/", ".").rstrip(".").replace("-", "_")
@@ -34,7 +35,8 @@ class PklGithubActionStepGenerator:
             name,
             tag,
             module_name,
-            pkl_github_actions_bindings_version
+            pkl_github_actions_bindings_version,
+            deprecated
         )
 
         generator = PklGenerator(
