@@ -3,11 +3,15 @@
 /// {{ line }}
 {%- endfor %}
 {%- endmacro -%}
+{%- if deprecated -%}
+@Deprecated { message = "Use a more recent version of this action, see <{{ action.url }}>" }
+{{ '' }}
+{%- endif -%}
 open module {{ module }}
-{% if pkl_github_actions.enabled %}
+{% if pkl_github_actions.enabled -%}
 import "package://github.com/emilymclean/pkl-github-actions/releases/download/v{{ pkl_github_actions.version }}/pkl-github-actions@{{ pkl_github_actions.version }}#/actions.pkl" as pklaction
+{{ '' }}
 {%- endif %}
-
 hidden const ACTION_CALL = "{{ call }}"
 
 {%- if action.outputs %}

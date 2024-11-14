@@ -23,9 +23,36 @@ def parse_name(name: str) -> tuple[str, str, str, str]:
     tag = components[1]
     return components[0], repository, path, tag
 
+
 @click.group()
 def entry_point():
     pass
+
+
+def generate(
+        content: str,
+        name: str,
+        tag: str,
+        output: Optional[str],
+        pkl_github_actions_bindings: bool,
+        pkl_github_actions_bindings_version: Optional[str],
+        deprecated: bool
+):
+    core = PklGithubActionStepGenerator()
+
+    generated = core.generate(
+        content,
+        name,
+        tag,
+        pkl_github_actions_bindings_version=pkl_github_actions_bindings_version if pkl_github_actions_bindings else None,
+        deprecated=deprecated
+    )
+
+    if output is None:
+        click.echo(generated)
+    else:
+        with Path(output).open(mode='w') as f:
+            f.write(generated)
 
 
 @click.command()
@@ -33,11 +60,13 @@ def entry_point():
 @click.option('--output', '-o', required=False)
 @click.option('--pkl-github-actions-bindings', default=False, is_flag=True)
 @click.option('--pkl-github-actions-bindings-version', required=False)
+@click.option('--deprecated', required=False, is_flag=True)
 def from_remote(
         name: str,
         output: Optional[str],
         pkl_github_actions_bindings: bool,
-        pkl_github_actions_bindings_version: Optional[str]
+        pkl_github_actions_bindings_version: Optional[str],
+        deprecated: bool
 ):
     if pkl_github_actions_bindings_version is None:
         pkl_github_actions_bindings_version = "0.1.0-alpha.96"
@@ -58,20 +87,7 @@ def from_remote(
     if content is None:
         raise Exception("Unable to find action file for provided action")
 
-    core = PklGithubActionStepGenerator()
-
-    generated = core.generate(
-        content,
-        name,
-        tag,
-        pkl_github_actions_bindings_version=pkl_github_actions_bindings_version if pkl_github_actions_bindings else None
-    )
-
-    if output is None:
-        click.echo(generated)
-    else:
-        with Path(output).open(mode='w') as f:
-            f.write(generated)
+    generate(content, name, tag, output, pkl_github_actions_bindings, pkl_github_actions_bindings_version, deprecated)
 
 
 @click.command()
@@ -80,12 +96,14 @@ def from_remote(
 @click.option('--output', '-o', required=False)
 @click.option('--pkl-github-actions-bindings', default=False, is_flag=True)
 @click.option('--pkl-github-actions-bindings-version', required=False)
+@click.option('--deprecated', required=False, is_flag=True)
 def from_local(
         file_path: str,
         name: str,
         output: Optional[str],
         pkl_github_actions_bindings: bool,
-        pkl_github_actions_bindings_version: Optional[str]
+        pkl_github_actions_bindings_version: Optional[str],
+        deprecated: bool
 ):
     if pkl_github_actions_bindings_version is None:
         pkl_github_actions_bindings_version = "0.1.0-alpha.96"
@@ -95,20 +113,7 @@ def from_local(
     with Path(file_path).open(mode='r') as f:
         content = f.read()
 
-    core = PklGithubActionStepGenerator()
-
-    generated = core.generate(
-        content,
-        name,
-        tag,
-        pkl_github_actions_bindings_version=pkl_github_actions_bindings_version if pkl_github_actions_bindings else None
-    )
-
-    if output is None:
-        click.echo(generated)
-    else:
-        with Path(output).open(mode='w') as f:
-            f.write(generated)
+    generate(content, name, tag, output, pkl_github_actions_bindings, pkl_github_actions_bindings_version, deprecated)
 
 
 entry_point.add_command(from_remote)

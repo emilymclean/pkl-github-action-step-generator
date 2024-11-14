@@ -163,3 +163,5 @@ cython_debug/
 
 /action.pkl
 /action.yml
+/build.pkl
+/test.py

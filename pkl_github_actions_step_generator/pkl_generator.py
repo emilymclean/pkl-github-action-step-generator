@@ -12,6 +12,7 @@ class PklGeneratorConfig:
     action_version: str
     module_name: str
     pkl_github_actions_integration: Optional[str] = None
+    deprecated: bool = False
 
 
 class PklGenerator:
@@ -36,14 +37,19 @@ class PklGenerator:
         template = self.env.get_template("action.pkl.jinja")
         return template.render(
             {
-                "action": asdict(self.action),
+                "action": asdict(
+                    self.action
+                ) | {
+                    "url": f"https://github.com/{self.config.action_name}",
+                },
                 "call": f"{self.config.action_name}@{self.config.action_version}",
                 "module": self.config.module_name,
                 "pkl_github_actions": {
                     "enabled": self.config.pkl_github_actions_integration is not None,
                     "version": self.config.pkl_github_actions_integration,
                 },
-                "all_inputs_nullable": not any(input.required for input in self.action.inputs)
+                "all_inputs_nullable": not any(input.required for input in self.action.inputs),
+                "deprecated": self.config.deprecated,
             }
         )
 
